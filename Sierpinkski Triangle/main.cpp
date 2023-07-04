@@ -219,7 +219,7 @@ int main()
         //translationMatrix = glm::translate(modelMatrix, glm::vec3(0.5f, 0.0f, 0.0f)); // translate by (0.5, 0.0, 0.0)
 
 
-        drawSierpinskiTriangle(-1.0, -1.0, 0.0, 01, 1, -1, totalDepth, shaderProgram2);
+        drawSierpinskiTriangle(-1.0, -1.0, 0.0, 1.0, 1.0, -1.0, totalDepth, shaderProgram2);
 
         /*
         glDrawArrays(GL_TRIANGLES, 0, 3);
