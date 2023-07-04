@@ -6,9 +6,9 @@ Sierpinski's Triangle is a fractal pattern formed by repeatedly dividing an equi
 
 ## Program
 
-This model is created using OpenGL 3.3. This rendition uses a recursive algirthim to change the vertex shader to translate and scale each triangle accordingly.
+This model is created using OpenGL 3.3. This rendition uses a recursive algorithm to change the vertex shader to translate and scale each triangle accordingly.
 
-
+![Sierpinski's Triangle OpenGL](https://github.com/SarthakSarans/Sierpinkskis-Triangle/assets/63066248/73f71389-d9b4-4f49-9958-2bed6b3be664)
 
 
 
