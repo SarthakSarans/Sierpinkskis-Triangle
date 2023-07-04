@@ -8,17 +8,19 @@
 #include <iostream>
 
 const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_HEIGHT = 800;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
+std::pair<float, float> conv(std::pair<unsigned int, unsigned int> x);
 void drawSierpinskiTriangle(float x1, float y1, float x2, float y2, float x3, float y3, int depth, unsigned int shader);
 void setUniform(unsigned int shader);
 
 glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f));
 glm::mat4 rotationMatrix = glm::mat4(1.0f);
-glm::vec3 translationVector(0.0f, 0.0f, 0.0f);
+glm::mat4 translationMatrix = glm::mat4(1.0f);
 
+int totalDepth = 9;
 
 const char* vertexShaderSource = R"(
     #version 330 core
@@ -26,11 +28,11 @@ const char* vertexShaderSource = R"(
 
     uniform mat4 scaleMatrix;
     uniform mat4 rotationMatrix;
-    uniform vec3 translationVector;
+    uniform mat4 translationMatrix;
 
     void main()
     {
-        gl_Position = scaleMatrix * rotationMatrix * vec4(aPos.x, aPos.y, aPos.z, 1.0) + vec4(translationVector, 1.0);
+        gl_Position = translationMatrix * (scaleMatrix * rotationMatrix  * vec4(aPos.x, aPos.y, aPos.z, 1.0));
     }
 )";
 
@@ -40,7 +42,7 @@ const char* backgroundShaderSource = R"(
 
     void main()
     {
-        FragColor = vec4(.762f, 0.81310f, 01.0f, 1.0f);
+        FragColor = vec4(0.762f, 0.81310f, 01.0f, 1.0f);
     }
 )";
 const char* fragmentShaderSource1 = R"(
@@ -49,7 +51,7 @@ const char* fragmentShaderSource1 = R"(
 
     void main()
     {
-        FragColor = vec4(.2f, 0.310f, 0.610f, 1.0f);
+        FragColor = vec4(0.272f, 0.7310f, 0.610f, 1.0f);
     }
 )"; 
 
@@ -59,9 +61,10 @@ const char* fragmentShaderSource2 = R"(
 
     void main()
     {
-        FragColor = vec4(.2f, 0.310f, 0.2610f, 1.0f);;
+        FragColor = vec4(0.2f, 0.310f, 0.2610f, 1.0f);;
     }
 )";
+
 
 
 int main()
@@ -97,7 +100,12 @@ int main()
         std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
     
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+
+
+
     unsigned int backgroundShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(backgroundShader, 1, &backgroundShaderSource, NULL);
     glCompileShader(backgroundShader);
@@ -159,9 +167,9 @@ int main()
     glEnableVertexAttribArray(0);
     
     float verticesTri[] = {
-       -1.0f, 1.0f , 0.0f , // bottom left  
-        01.0f , 01.0f, 0.0f, // bottom right 
-        0.0f ,  -01.0f , 0.0f,   // top right
+       -1.0f, -1.0f , 0.0f , // bottom left  
+        01.0f , -01.0f, 0.0f, // bottom right 
+        0.0f ,  01.0f , 0.0f,   // top right
         
     };
 
@@ -179,16 +187,17 @@ int main()
 
     while (!glfwWindowShouldClose(window))
     {
-        scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f));
+        scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
         rotationMatrix = glm::mat4(1.0f);
-        translationVector = glm::vec3(0.0f, 0.0f, 0.0f);
+        translationMatrix = glm::mat4(1.0f);
+        setUniform(shaderProgram2);
 
 
         processInput(window);
 
-        //glClearColor(0.12f, 0.3f, 0.53f, 1.0f);
-        //glClear(GL_COLOR_BUFFER_BIT);
-
+        glClearColor(.762f, 0.81310f, 01.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        /*
         //Background
         glUseProgram(backgroundProgram);
 
@@ -198,39 +207,41 @@ int main()
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
-        
+        */
 
         //Base Triangle
         glUseProgram(shaderProgram2);
         glBindVertexArray(VAO3);
         
 
-        rotationMatrix = glm::rotate(rotationMatrix, glm::radians(180.0f), glm::vec3(0.0, 0.0, 1.0));
+        //rotationMatrix = glm::rotate(rotationMatrix, glm::radians(180.0f), glm::vec3(0.0, 0.0, 1.0));
+        //::mat4 modelMatrix = glm::mat4(1.0f); // identity matrix
+        //translationMatrix = glm::translate(modelMatrix, glm::vec3(0.5f, 0.0f, 0.0f)); // translate by (0.5, 0.0, 0.0)
 
-        setUniform(shaderProgram1);
+
+        drawSierpinskiTriangle(-1.0, -1.0, 0.0, 01, 1, -1, totalDepth, shaderProgram2);
+
+        /*
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
-        //First Division
-        rotationMatrix = glm::mat4(1.0f);
+        scaleMatrix = glm::scale(glm::mat4(1.0), glm::vec3(0.5));
 
-        glUseProgram(shaderProgram1);
-
-
-        scaleMatrix = glm::scale(scaleMatrix, glm::vec3(0.50f));
-        translationVector = glm::vec3(0.0f, -1.0f, 0.0f);
+        translationMatrix = glm::translate(glm::mat4(1.0), glm::vec3(-0.50f, -0.50f, 0.0f)); // translate by (0.5, 0.0, 0.0)
         setUniform(shaderProgram2);
 
         glDrawArrays(GL_TRIANGLES, 0, 3);
-        
-        //Loop to make more tiers
 
+        scaleMatrix = glm::scale(glm::mat4(1.0), glm::vec3(0.25));
 
-        //Loop to make bottom left tiers
-        
+        translationMatrix = glm::translate(glm::mat4(1.0), glm::vec3(-0.75f, -0.75f, 0.0f)); // translate by (0.5, 0.0, 0.0)
+        setUniform(shaderProgram2);
+
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        */
    
         glfwSwapBuffers(window);
         glfwPollEvents();
-        glfwWaitEventsTimeout(5.0);
+        //glfwWaitEventsTimeout(5.0);
         
     }
 
@@ -256,11 +267,24 @@ void setUniform(unsigned int shader) {
 
     glUniformMatrix4fv(glGetUniformLocation(shader, "scaleMatrix"), 1, GL_FALSE, glm::value_ptr(scaleMatrix));
     glUniformMatrix4fv(glGetUniformLocation(shader, "rotationMatrix"), 1, GL_FALSE, glm::value_ptr(rotationMatrix));
-    glUniform3fv(glGetUniformLocation(shader, "translationVector"), 1, glm::value_ptr(translationVector));
+    glUniformMatrix4fv(glGetUniformLocation(shader, "translationMatrix"), 1, GL_FALSE, glm::value_ptr(translationMatrix));
 
 
 }
 
+std::pair<float,float> conv(std::pair<unsigned int, unsigned int> x) {
+
+    std::pair<float, float> a;
+    
+     if (x.first > SCR_WIDTH/2) {
+         a.first = (float) ((x.first - (SCR_WIDTH / 2)) / (SCR_WIDTH / 2));
+         a.second = (float)((x.second - (SCR_HEIGHT / 2)) / (SCR_HEIGHT / 2));
+      }
+
+    
+    return a;
+
+}
 
 void drawSierpinskiTriangle(float x1, float y1, float x2, float y2, float x3, float y3, int depth, unsigned int shader)
 {
@@ -268,32 +292,48 @@ void drawSierpinskiTriangle(float x1, float y1, float x2, float y2, float x3, fl
     {
         
     }
+
+    
     else
     {
-        float x12 = (x1 + x2) / 2.0f;
-        float y12 = (y1 + y2) / 2.0f;
-        float x23 = (x2 + x3) / 2.0f;
-        float y23 = (y2 + y3) / 2.0f;
-        float x31 = (x3 + x1) / 2.0f;
-        float y31 = (y3 + y1) / 2.0f;
+        float x12 = (x1 + x2) / 2.0f; //left
+        float y12 = (y1 + y2) / 2.0f; //left
+        float x23 = (x2 + x3) / 2.0f; //top
+        float y23 = (y2 + y3) / 2.0f; //top
+        float x31 = (x3 + x1) / 2.0f; //right
+        float y31 = (y3 + y1) / 2.0f; //right
+        //if (depth != totalDepth) {
+            float yShift = -0.5f;
+            float xShift = -1.0f;
 
-        float yShift = -0.5f;
-        float xShift = -1.0f;
+            int scale = totalDepth - depth;
+
+            float scaleFactor = pow(0.5f, scale);
+
+            glm::vec3 transformedPoint = scaleFactor * glm::vec3(0, 1, 0);
+            glm::vec3 endPoint = glm::vec3(x2, y2, 0);
+
+            glm::vec3 translatedVector = endPoint - transformedPoint;
+
+            translationMatrix = glm::translate(glm::mat4(1.0), translatedVector);
+
+            scaleMatrix = glm::scale(glm::mat4(1.0), glm::vec3(pow(0.5, scale)));
+            //yShift -= pow(0.25, scale);
+            //xShift *= pow(1.5, scale);
+            //translationMatrix = glm::vec3(xShift, yShift, 0.0f);
+        
+            setUniform(shader);
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+
 
         
-        scaleMatrix = glm::scale(scaleMatrix, glm::vec3(0.50f));
-        yShift -= pow(0.25, depth);
-        xShift *= pow(1.5, depth);
-        translationVector = glm::vec3(xShift, yShift, 0.0f);
-
-        setUniform(shader);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-        
-
-
-
+        //left triangle
         drawSierpinskiTriangle(x1, y1, x12, y12, x31, y31, depth - 1, shader);
+
+        //top triangle
         drawSierpinskiTriangle(x12, y12, x2, y2, x23, y23, depth - 1, shader);
+        
+        //right triangle 
         drawSierpinskiTriangle(x31, y31, x23, y23, x3, y3, depth - 1, shader);
     }
 }
