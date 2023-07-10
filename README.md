@@ -1,4 +1,4 @@
-# OpenGL representation of Sierpinkski's Triangle
+# OpenGL representation of Sierpinski's Triangle
 
 ## Background
 
